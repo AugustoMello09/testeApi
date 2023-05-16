@@ -18,6 +18,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import io.github.AugustoMello09.domain.User;
 import io.github.AugustoMello09.domain.dto.UserDTO;
 import io.github.AugustoMello09.repositories.UserRepository;
+import io.github.AugustoMello09.services.exception.ObjectNotFoundException;
 import io.github.AugustoMello09.services.impl.UserServiceImpl;
 
 @SpringBootTest
@@ -63,6 +64,18 @@ public class UserServiceImplTest {
 		assertEquals(ID, response.getId());
 		assertEquals(NAME, response.getName());
 		assertEquals(EMAIL, response.getEmail());
+	}
+
+	@Test
+	void whenFindByIdThenReturnAnObjectNotFoundException() {
+		when(repository.findById(anyInt())).thenThrow(new ObjectNotFoundException("não encontrado"));
+		
+		try {
+			service.findById(ID);
+		} catch (Exception e) {
+			assertEquals(ObjectNotFoundException.class, e.getClass());
+			assertEquals("não encontrado", e.getMessage());
+		}
 	}
 
 	@Test
