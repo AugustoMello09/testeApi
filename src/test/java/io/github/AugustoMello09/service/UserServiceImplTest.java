@@ -2,7 +2,9 @@ package io.github.AugustoMello09.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
@@ -19,6 +21,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import io.github.AugustoMello09.domain.User;
 import io.github.AugustoMello09.domain.dto.UserDTO;
 import io.github.AugustoMello09.repositories.UserRepository;
+import io.github.AugustoMello09.services.exception.DataIntegratyViolationException;
 import io.github.AugustoMello09.services.exception.ObjectNotFoundException;
 import io.github.AugustoMello09.services.impl.UserServiceImpl;
 
@@ -99,7 +102,30 @@ public class UserServiceImplTest {
 	}
 
 	@Test
-	void create() {
+	void whenCreateThenReturnSuccess() {
+		when(repository.save(any())).thenReturn(user);
+
+		User response = service.create(userDto);
+
+		assertNotNull(response);
+		assertEquals(User.class, response.getClass());
+		assertEquals(ID, response.getId());
+		assertEquals(NAME, response.getName());
+		assertEquals(EMAIL, response.getEmail());
+		assertEquals(PASSWORD, response.getPassword());
+	}
+
+	@Test
+	void whenCreateThenReturnAnDataIntegrityViolationException() {
+		when(repository.findByEmail(anyString())).thenReturn(optionalUser);
+
+		try {
+			optionalUser.get().setId(2);
+			service.create(userDto);
+		} catch (Exception ex) {
+			assertEquals(DataIntegratyViolationException.class, ex.getClass());
+			assertEquals("Email já existe", ex.getMessage());
+		}
 
 	}
 
