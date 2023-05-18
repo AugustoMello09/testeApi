@@ -28,6 +28,8 @@ import io.github.AugustoMello09.services.impl.UserServiceImpl;
 @SpringBootTest
 public class UserServiceImplTest {
 
+	private static final String EMAIL_JA_EXISTE = "Email já existe";
+
 	private static final int INDEX = 0;
 
 	private static final String NAO_ENCONTRADO = "não encontrado";
@@ -124,13 +126,36 @@ public class UserServiceImplTest {
 			service.create(userDto);
 		} catch (Exception ex) {
 			assertEquals(DataIntegratyViolationException.class, ex.getClass());
-			assertEquals("Email já existe", ex.getMessage());
+			assertEquals(EMAIL_JA_EXISTE, ex.getMessage());
 		}
 
 	}
 
 	@Test
-	void update() {
+	void whenUpdateThenReturnSuccess() {
+		when(repository.save(any())).thenReturn(user);
+
+		User response = service.update(userDto);
+
+		assertNotNull(response);
+		assertEquals(User.class, response.getClass());
+		assertEquals(ID, response.getId());
+		assertEquals(NAME, response.getName());
+		assertEquals(EMAIL, response.getEmail());
+		assertEquals(PASSWORD, response.getPassword());
+	}
+
+	@Test
+	void whenUpdateThenReturnAnDataIntegrityViolationException() {
+		when(repository.findByEmail(anyString())).thenReturn(optionalUser);
+
+		try {
+			optionalUser.get().setId(2);
+			service.create(userDto);
+		} catch (Exception ex) {
+			assertEquals(DataIntegratyViolationException.class, ex.getClass());
+			assertEquals(EMAIL_JA_EXISTE, ex.getMessage());
+		}
 
 	}
 
