@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.when;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -23,6 +24,10 @@ import io.github.AugustoMello09.services.impl.UserServiceImpl;
 
 @SpringBootTest
 public class UserServiceImplTest {
+
+	private static final int INDEX = 0;
+
+	private static final String NAO_ENCONTRADO = "não encontrado";
 
 	private static final Integer ID = 1;
 
@@ -43,7 +48,7 @@ public class UserServiceImplTest {
 
 	private User user;
 
-	private UserDTO userDTO;
+	private UserDTO userDto;
 
 	private Optional<User> optionalUser;
 
@@ -68,14 +73,29 @@ public class UserServiceImplTest {
 
 	@Test
 	void whenFindByIdThenReturnAnObjectNotFoundException() {
-		when(repository.findById(anyInt())).thenThrow(new ObjectNotFoundException("não encontrado"));
-		
+		when(repository.findById(anyInt())).thenThrow(new ObjectNotFoundException(NAO_ENCONTRADO));
 		try {
 			service.findById(ID);
 		} catch (Exception e) {
 			assertEquals(ObjectNotFoundException.class, e.getClass());
-			assertEquals("não encontrado", e.getMessage());
+			assertEquals(NAO_ENCONTRADO, e.getMessage());
 		}
+	}
+
+	@Test
+	void whenFindAllThenReturnAnListOfUsers() {
+		when(repository.findAll()).thenReturn(List.of(user));
+
+		List<User> response = service.findAll();
+
+		assertNotNull(response);
+		assertEquals(1, response.size());
+		assertEquals(User.class, response.get(INDEX).getClass());
+
+		assertEquals(ID, response.get(INDEX).getId());
+		assertEquals(NAME, response.get(INDEX).getName());
+		assertEquals(EMAIL, response.get(INDEX).getEmail());
+		assertEquals(PASSWORD, response.get(INDEX).getPassword());
 	}
 
 	@Test
@@ -95,7 +115,7 @@ public class UserServiceImplTest {
 
 	private void startUser() {
 		user = new User(ID, NAME, EMAIL, PASSWORD);
-		userDTO = new UserDTO(ID, NAME, EMAIL, PASSWORD);
+		userDto = new UserDTO(ID, NAME, EMAIL, PASSWORD);
 		optionalUser = Optional.of(new User(ID, NAME, EMAIL, PASSWORD));
 	}
 }
